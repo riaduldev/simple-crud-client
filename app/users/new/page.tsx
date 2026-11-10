@@ -1,5 +1,5 @@
 'use client'
-import type { FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -9,31 +9,37 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
+import { apiFetch } from "@/lib/api"
 
 
 const NewUserPage = () => {
     const router = useRouter()
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleAddNewUser = async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
+      setErrorMessage(null)
+      setIsSubmitting(true)
       const formData = new FormData(e.currentTarget);
       const newUser = Object.fromEntries(formData.entries());
 
-      console.log(newUser);
-
-      const res =await fetch(`http://localhost:5000/users`, {
-        method: "POST",
-        headers:{'Content-Type': 'application/json'},
-        body:JSON.stringify(newUser)
-
-      })
-
-      console.log('response from server', res);
-      const afterSubmit = await res.json();
-      console.log('after submit', afterSubmit);
-      if(afterSubmit.insertedId){
-        console.log('User Added Successfully');
+      try {
+        const res = await apiFetch('/users', {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUser)
+        })
+        const result: { insertedId?: string } = await res.json()
+        if (!result.insertedId) {
+          throw new Error('The API did not confirm that the user was added.')
+        }
         router.push('/users')
+      } catch (error) {
+        console.warn('Failed to add user:', error)
+        setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred while adding the user.')
+      } finally {
+        setIsSubmitting(false)
       }
     }
     return (
@@ -76,8 +82,15 @@ const NewUserPage = () => {
                 <Button type="reset" variant="outline">
                   Reset
                 </Button>
-                <Button type="submit">Add User</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Adding...' : 'Add User'}
+                </Button>
               </Field>
+              {errorMessage && (
+                <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  {errorMessage}
+                </p>
+              )}
             </FieldGroup>
           </form>
         </div>
