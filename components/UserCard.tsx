@@ -25,7 +25,7 @@ type UserCardProps = {
 const UserCard = ({ user }: UserCardProps) => {
     
     const router = useRouter();
-    const handleDeleteUser = async(id) => {
+    const handleDeleteUser = async (id: string) => {
         //    console.log('delete user', _id);
            const res = await fetch(`http://localhost:5000/users/${id}`,{
              method: "DELETE"

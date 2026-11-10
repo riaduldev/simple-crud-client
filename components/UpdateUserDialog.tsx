@@ -1,3 +1,6 @@
+"use client"
+
+import type { FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,8 +16,16 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-const UpdateUserDialog = ({ user }) => {
-  const handleUpdateUser = async (e) => {
+type UpdateUserDialogProps = {
+  user: {
+    _id: string
+    name: string
+    email: string
+  }
+}
+
+const UpdateUserDialog = ({ user }: UpdateUserDialogProps) => {
+  const handleUpdateUser = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const updateUser = Object.fromEntries(formData.entries())
